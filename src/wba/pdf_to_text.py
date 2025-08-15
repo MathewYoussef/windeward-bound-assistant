@@ -1,31 +1,32 @@
-import fitz  # PyMuPDF library for PDF handling
-import json
+"""Robust PDF → plain-text extractor using pdfplumber.
 
-def extract_text_from_pdf(pdf_path):
-    # Open the PDF file
-    pdf_document = fitz.open(pdf_path)
-    text_data = []
+Usage::
+    python -m wba.pdf_to_text input.pdf > output.json
+"""
+import sys, json, re
+from pathlib import Path
+import pdfplumber
 
-    # Loop through each page in the PDF
-    for page_num in range(pdf_document.page_count):
-        page = pdf_document[page_num]
-        page_text = page.get_text("text")  # Extract text from the page
-        text_data.append({"page_num": page_num + 1, "content": page_text})
+CLEAN_RE = re.compile(r'\s+')
 
-    pdf_document.close()
-    return text_data
+def extract(path: Path) -> list[str]:
+    pages = []
+    with pdfplumber.open(path) as pdf:
+        for p in pdf.pages:
+            txt = p.extract_text(x_tolerance=2, y_tolerance=2) or ""
+            txt = CLEAN_RE.sub(" ", txt).strip()
+            if txt:
+                pages.append(txt)
+    return pages
 
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("Usage: pdf_to_text.py <file.pdf>")
+    pdf_in = Path(sys.argv[1])
+    pages = extract(pdf_in)
+    print(json.dumps(
+        [{"page_num": i+1, "content": t} for i, t in enumerate(pages)],
+        ensure_ascii=False, indent=2))
 
-# Path to your PDF file
-pdf_path = "/Users/mathewyoussef/Desktop/Windward_Bound/Windward_Bound_Information.pdf"
-text_data = extract_text_from_pdf(pdf_path)
-
-# Verify output by printing the text from each page
-for page in text_data:
-    print(f"Page {page['page_num']}:\n{page['content']}\n{'='*40}")
-
-# Save the extracted text to a JSON file
-with open("extracted_text.json", "w") as json_file:
-    json.dump(text_data, json_file, indent=4)
-
-print("PDF text successfully saved to extracted_text.json")
+if __name__ == "__main__":
+    main()
