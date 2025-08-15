@@ -263,7 +263,7 @@ class LocalRAG:
     def __init__(self, json_path="extracted_text.json"):
         self.pages = load_pages(json_path)
         self.texts = [p["content"] for p in self.pages]
-        self.embeddings = _embed_texts(self.texts) if self.texts else np.zeros((0,384), dtype=np.float32)
+        self.embeddings = _load_or_build_embeddings(self.texts) if self.texts else np.zeros((0,384), dtype=np.float32)
 
     def retrieve(self, query: str, top_k: int = 8,
                  include: Optional[List[str]] = None,
