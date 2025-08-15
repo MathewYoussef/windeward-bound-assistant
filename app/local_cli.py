@@ -12,10 +12,10 @@ from wba.local_rag import LocalRAG
 DEBUG_MODE  = bool(os.getenv("WBA_DEBUG"))
 MEM_HISTORY = deque(maxlen=6)     # (question, answer) pairs
 
+
 def main() -> None:
-    rag     = LocalRAG(json_path="extracted_text.json")
-    history = []      # last full turns for rag.answer()
-    topic   = None    # sticky entity
+    rag   = LocalRAG(json_path="extracted_text.json")
+    topic = None  # sticky entity
 
     print("Windeward Bound Assistant (local) — type 'quit' to exit.")
     while True:
@@ -25,24 +25,23 @@ def main() -> None:
             break
 
         try:
-            # ---- prepend brief chat history (for model) -----------------
-            hist_block = ""
-            if MEM_HISTORY:
-                hist_block = (
-                    "\n\nPREVIOUS TURNS:\n" +
-                    "\n".join(f"USER: {u}\nASSISTANT: {a}" for u, a in MEM_HISTORY)
+            # ---- prepend brief chat history (as messages, not inline) ----
+            hist_msgs = []
+            for u, a in MEM_HISTORY:
+                hist_msgs.extend(
+                    [
+                        {"role": "user", "content": u},
+                        {"role": "assistant", "content": a},
+                    ]
                 )
-            new_q = q + hist_block if hist_block else q
 
             # ---- RAG ----------------------------------------------------
             answer, info = rag.answer(
-                new_q, history=history[-4:], sticky_topic=topic, top_k=8
+                q, history=hist_msgs[-4:], sticky_topic=topic, top_k=8
             )
             topic = info.get("topic", topic)
 
             # ---- bookkeeping -------------------------------------------
-            history.append({"role": "user",      "content": q})
-            history.append({"role": "assistant", "content": answer})
             MEM_HISTORY.append((q, answer))
 
             # ---- output -------------------------------------------------
