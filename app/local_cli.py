@@ -29,43 +29,44 @@ def main():
             break
 
         try:
-            answer, info = rag.answer(q, history=history[-4:], sticky_topic=topic, top_k=8)
-            # ----- prepend brief chat history (if any) -----
-            hist_block = ''
-            if MEM_HISTORY:
+            try:
+                answer, info = rag.answer(q, history=history[-4:], sticky_topic=topic, top_k=8)
+                # ----- prepend brief chat history (if any) -----
+                hist_block = ''
+                if MEM_HISTORY:
                 hist_block = '\n\nPREVIOUS TURNS:\n' + '\n'.join(
-                    f'USER: {u}\nASSISTANT: {a}' for u, a in MEM_HISTORY)
-            new_q = q + hist_block if hist_block else q
-            topic = info.get("topic", topic)
-
-            # Record to history
-            history.append({"role":"user","content": q})
-            history.append({"role":"assistant","content": answer})
-
-            # Show answer
-            print("\nANSWER:\n" + answer + "\n")
-            # --- optional debug context ----------------------------------
-            if DEBUG_MODE:
+                f'USER: {u}\nASSISTANT: {a}' for u, a in MEM_HISTORY)
+                new_q = q + hist_block if hist_block else q
+                topic = info.get("topic", topic)
+                
+                # Record to history
+                history.append({"role":"user","content": q})
+                history.append({"role":"assistant","content": answer})
+                
+                # Show answer
+                print("\nANSWER:\n" + answer + "\n")
+                # --- optional debug context ----------------------------------
+                if DEBUG_MODE:
                 ctx_preview = info.get('context', [])[:3]
                 if ctx_preview:
-                    print('--- Context sentences used ---')
-                    for line in ctx_preview:
-                        print(line if len(line) < 240 else line[:237] + '...')
-                    pages = info.get('pages', [])
-                    if pages:
-                        print(f"(pages: {', '.join(map(str, pages))})")
-                    print('------------------------------\n')
-            if not DEBUG_MODE:
-                continue  # normal mode: skip retrieval details
-
-            ctx_preview = info.get('context', [])[:3]
-            if ctx_preview:
                 print('--- Context sentences used ---')
                 for line in ctx_preview:
-                    print(line if len(line) < 240 else line[:237] + '...')
+                print(line if len(line) < 240 else line[:237] + '...')
                 pages = info.get('pages', [])
                 if pages:
-                    print(f"(pages: {', '.join(map(str, pages))})")
+                print(f"(pages: {', '.join(map(str, pages))})")
+                print('------------------------------\n')
+                if not DEBUG_MODE:
+                continue  # normal mode: skip retrieval details
+                
+                ctx_preview = info.get('context', [])[:3]
+                if ctx_preview:
+                print('--- Context sentences used ---')
+                for line in ctx_preview:
+                print(line if len(line) < 240 else line[:237] + '...')
+                pages = info.get('pages', [])
+                if pages:
+                print(f"(pages: {', '.join(map(str, pages))})")
                 print('------------------------------\n')
             except Exception as e:
                 print(f"[error] {e}")
