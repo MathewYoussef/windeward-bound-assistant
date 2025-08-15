@@ -5,19 +5,25 @@ import numpy as np
 
 # -------- embedding-cache --------
 EMB_CACHE_PATH = Path("data/embeddings.npy")
-def _load_or_build_embeddings(texts):
+
+def _build_embeddings(texts: List[str]) -> np.ndarray:
+    """(Re)create the sentence-embedding cache for provided texts."""
     EMB_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if EMB_CACHE_PATH.exists():
-        try:
-            import numpy as _np
-            arr = _np.load(EMB_CACHE_PATH)
-            if arr.shape[0] == len(texts):
-                return arr
-        except Exception:
-            pass  # fall through to rebuild
     arr = _embed_texts(texts)
     import numpy as _np
     _np.save(EMB_CACHE_PATH, arr)
+    return arr
+
+def _load_embeddings(texts: List[str]) -> np.ndarray:
+    """Load prebuilt embeddings; raise if cache is missing or stale."""
+    if not EMB_CACHE_PATH.exists():
+        raise FileNotFoundError(
+            "Missing embedding cache; run codex_setup.sh to build it"
+        )
+    import numpy as _np
+    arr = _np.load(EMB_CACHE_PATH)
+    if arr.shape[0] != len(texts):
+        raise ValueError("Embedding cache is out of date; rebuild required")
     return arr
 
 # ---- Globals (lazy-loaded) ----
@@ -280,7 +286,11 @@ class LocalRAG:
     def __init__(self, json_path="extracted_text.json"):
         self.pages = load_pages(json_path)
         self.texts = [p["content"] for p in self.pages]
-        self.embeddings = _load_or_build_embeddings(self.texts) if self.texts else np.zeros((0,384), dtype=np.float32)
+        self.embeddings = (
+            _load_embeddings(self.texts)
+            if self.texts
+            else np.zeros((0, 384), dtype=np.float32)
+        )
 
     def retrieve(self, query: str, top_k: int = 8,
                  include: Optional[List[str]] = None,
