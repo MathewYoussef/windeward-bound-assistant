@@ -30,7 +30,6 @@ def main() -> None:
 
         # -------- RAG + answer generation wrapped in try/except --------
         try:
-            answer, info = rag.answer(
                 new_q, history=history[-4:], sticky_topic=topic, top_k=8
             )
             topic = info.get("topic", topic)
