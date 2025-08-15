@@ -7,12 +7,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from collections import deque
-from wba.local_rag import LocalRAG
+import argparse
 
 DEBUG_MODE  = bool(os.getenv("WBA_DEBUG"))
 MEM_HISTORY = deque(maxlen=6)     # (question, answer) pairs
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--health", action="store_true", help="Run a basic health check and exit")
+    args = parser.parse_args()
+
+    if args.health:
+        print("OK")
+        return
+
+    from wba.local_rag import LocalRAG
+
     rag     = LocalRAG(json_path="extracted_text.json")
     history = []      # last full turns for rag.answer()
     topic   = None    # sticky entity
