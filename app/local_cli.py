@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from wba.local_rag import LocalRAG
+import os
+DEBUG_MODE = bool(os.getenv('WBA_DEBUG'))  # set WBA_DEBUG=1 to show context
+
 from collections import deque
 
 # Keep last N question/answer pairs
@@ -41,6 +44,8 @@ def main():
 
             # Show answer
             print("\nANSWER:\n" + answer + "\n")
+        if not DEBUG_MODE:
+            continue  # skip debug output
 
             # Show what we actually fed the model (sanity/debug)
             ctx_preview = info.get("context", [])[:3]
