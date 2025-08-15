@@ -8,3 +8,4 @@ farm-haystack[inmemory]
 
 pdfplumber>=0.10
 Pillow>=10.0
+sentence-transformers>=0.7.2
