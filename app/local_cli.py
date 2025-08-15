@@ -33,9 +33,9 @@ def main():
                 answer, info = rag.answer(q, history=history[-4:], sticky_topic=topic, top_k=8)
                 # ----- prepend brief chat history (if any) -----
                 hist_block = ''
-                if MEM_HISTORY:
-                hist_block = '\n\nPREVIOUS TURNS:\n' + '\n'.join(
-                f'USER: {u}\nASSISTANT: {a}' for u, a in MEM_HISTORY)
+                    if MEM_HISTORY:
+                    hist_block = '\n\nPREVIOUS TURNS:\n' + '\n'.join(
+                    f'USER: {u}\nASSISTANT: {a}' for u, a in MEM_HISTORY)
                 new_q = q + hist_block if hist_block else q
                 topic = info.get("topic", topic)
                 
