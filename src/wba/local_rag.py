@@ -313,19 +313,28 @@ class LocalRAG:
         q_low = question.lower()
         include, exclude = [], []
 
-        # Entity bias for stickiness
-        if sticky_topic == "windeward" or "windeward" in q_low:
+        # Prefer entities mentioned in the current question; fall back to the
+        # previous sticky topic only if no entity is mentioned.
+        if "windeward" in q_low:
             include.append("windeward")
             exclude.extend(["mistral", "blue water warriors"])
-        elif sticky_topic == "mistral" or "mistral" in q_low:
+        elif "mistral" in q_low:
             include.append("mistral")
+        elif sticky_topic == "windeward":
+            include.append("windeward")
+            exclude.extend(["mistral", "blue water warriors"])
+        elif sticky_topic == "mistral":
+            include.append("mistral")
+
         include = include or None
         exclude = exclude or None
 
         top = self.retrieve(question, top_k=top_k, include=include, exclude=exclude)
         if not top:
-            return ("Can’t say for certain from the ship’s logs—no relevant texts aboard.",
-                    {"pages": [], "context": [], "topic": sticky_topic})
+            return (
+                "Can’t say for certain from the ship’s logs—no relevant texts aboard.",
+                {"pages": [], "context": [], "topic": sticky_topic},
+            )
 
         fed_sents, pages = _concat_with_pages(question, top, char_budget=1500)
 
