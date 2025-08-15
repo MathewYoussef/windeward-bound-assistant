@@ -45,6 +45,16 @@ def main():
             # Show answer
             print("\nANSWER:\n" + answer + "\n")
             # --- optional debug context ----------------------------------
+            if DEBUG_MODE:
+                ctx_preview = info.get('context', [])[:3]
+                if ctx_preview:
+                    print('--- Context sentences used ---')
+                    for line in ctx_preview:
+                        print(line if len(line) < 240 else line[:237] + '...')
+                    pages = info.get('pages', [])
+                    if pages:
+                        print(f"(pages: {', '.join(map(str, pages))})")
+                    print('------------------------------\n')
             if not DEBUG_MODE:
                 continue  # normal mode: skip retrieval details
 
@@ -57,18 +67,6 @@ def main():
                 if pages:
                     print(f"(pages: {', '.join(map(str, pages))})")
                 print('------------------------------\n')
-            continue  # skip debug output
-
-            # Show what we actually fed the model (sanity/debug)
-            ctx_preview = info.get("context", [])[:3]
-            if ctx_preview:
-                    print("--- Context sentences used ---")
-                    for line in ctx_preview:
-                        print(line if len(line) < 240 else line[:237] + "...")
-                    pages = info.get("pages", [])
-                    if pages:
-                        print(f"(pages: {', '.join(map(str,pages))})")
-                    print("------------------------------\n")
             except Exception as e:
                 print(f"[error] {e}")
 if __name__ == "__main__":
