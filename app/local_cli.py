@@ -29,21 +29,39 @@ def main():
             break
 
         try:
-            try:
-                answer, info = rag.answer(q, history=history[-4:], sticky_topic=topic, top_k=8)
-                # ----- prepend brief chat history (if any) -----
-                hist_block = ''
-                        if MEM_HISTORY:
-                        hist_block = '\n\nPREVIOUS TURNS:\n' + '\n'.join(
-                        f'USER: {u}\nASSISTANT: {a}' for u, a in MEM_HISTORY)
-                        new_q = q + hist_block if hist_block else q
-                        topic = info.get("topic", topic)
-                
-                # Record to history
-                history.append({"role":"user","content": q})
-                history.append({"role":"assistant","content": answer})
-                
-                # Show answer
+
+        try:
+            # prepend brief chat history (if any)
+            hist_block = ""
+            if MEM_HISTORY:
+                hist_block = (
+                    "\n\nPREVIOUS TURNS:\n" +
+                    "\n".join(f"USER: {u}\nASSISTANT: {a}" for u, a in MEM_HISTORY)
+                )
+            new_q = q + hist_block if hist_block else q
+
+            # RAG
+            answer, info = rag.answer(new_q, history=history[-4:], sticky_topic=topic, top_k=8)
+            topic = info.get("topic", topic)
+
+            # record turn
+            history.append({"role": "user", "content": q})
+            history.append({"role": "assistant", "content": answer})
+            MEM_HISTORY.append((q, answer))
+
+            # output
+            print("\nANSWER:\n" + answer + "\n")
+
+            if DEBUG_MODE:
+                ctx_preview = info.get("context", [])[:3]
+                if ctx_preview:
+                    print("--- Context sentences used ---")
+                    for line in ctx_preview:
+                        print(line if len(line) < 240 else line[:237] + "...")
+                    pages = info.get("pages", [])
+                    if pages:
+                        print(f"(pages: {', '.join(map(str, pages))})")
+                    print("------------------------------\n")
                 print("\nANSWER:\n" + answer + "\n")
                 # --- optional debug context ----------------------------------
                 if DEBUG_MODE:
