@@ -1,6 +1,6 @@
 # Windeward Bound Assistant (staging)
 
-A lightweight LLM-powered assistant about the STV **Windeward Bound**.  
+A lightweight LLM-powered assistant about the STV **Windeward Bound**.
 This is a cleaned, staged version of earlier experiments, in a professional structure.
 
 ## Structure
@@ -34,3 +34,7 @@ This is a cleaned, staged version of earlier experiments, in a professional stru
 3) Run locally:
        ./scripts/run_local.sh
        # shows retrieved snippets (debug)
+
+4) Web UI:
+       streamlit run app/web_ui.py
+       # Runs entirely locally; no OpenAI key required once models are cached.
