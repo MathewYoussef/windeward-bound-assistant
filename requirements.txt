@@ -1,12 +1,10 @@
-
-pytest>=7.0
-python-dotenv
-requests
 beautifulsoup4
-pandas
-numpy
 farm-haystack[inmemory]
-
+numpy
 pdfplumber>=0.10
 Pillow>=10.0
+pytest>=8.0
+python-dotenv
+requests
 sentence-transformers>=0.7.2
+streamlit>=1.34
