@@ -1,11 +1,10 @@
-openai
-python-dotenv
-requests
 beautifulsoup4
-pandas
-numpy
 farm-haystack[inmemory]
-
+numpy
+pandas
 pdfplumber>=0.10
 Pillow>=10.0
+python-dotenv
+requests
 sentence-transformers>=0.7.2
+streamlit>=1.34
