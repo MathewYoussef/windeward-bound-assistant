@@ -1,4 +1,5 @@
-openai
+
+pytest>=7.0
 python-dotenv
 requests
 beautifulsoup4
