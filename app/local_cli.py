@@ -7,15 +7,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from collections import deque
+import argparse
 from wba.local_rag import LocalRAG
 
 DEBUG_MODE  = bool(os.getenv("WBA_DEBUG"))
-MEM_HISTORY = deque(maxlen=6)     # (question, answer) pairs
+MEM_HISTORY = deque(maxlen=6)           # (question, answer) pairs
 
 
 def main() -> None:
-    rag   = LocalRAG(json_path="extracted_text.json")
-    topic = None  # sticky entity
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--health", action="store_true",
+                        help="Run a basic health check and exit")
+    parser.add_argument("--model", default=os.getenv("CHAT_MODEL_ID"),
+                        help="Chat model ID to use (overrides env)")
+    args = parser.parse_args()
+
+    if args.health:
+        print("OK")
+        return
+
+    rag   = LocalRAG(json_path="extracted_text.json", model_id=args.model)
+    topic = None                              # sticky entity
 
     print("Windeward Bound Assistant (local) — type 'quit' to exit.")
     while True:
@@ -25,26 +37,27 @@ def main() -> None:
             break
 
         try:
-            # ---- prepend brief chat history (as messages, not inline) ----
+            # ---- last two prior turns as structured messages -------------
             hist_msgs = []
             for u, a in MEM_HISTORY:
-                hist_msgs.extend(
-                    [
-                        {"role": "user", "content": u},
-                        {"role": "assistant", "content": a},
-                    ]
-                )
+                hist_msgs.extend([
+                    {"role": "user",      "content": u},
+                    {"role": "assistant", "content": a},
+                ])
 
-            # ---- RAG ----------------------------------------------------
+            # ---- RAG ------------------------------------------------------
             answer, info = rag.answer(
-                q, history=hist_msgs[-4:], sticky_topic=topic, top_k=8
+                q,
+                history=hist_msgs[-4:],   # at most 2 prior turns
+                sticky_topic=topic,
+                top_k=8,
             )
             topic = info.get("topic", topic)
 
-            # ---- bookkeeping -------------------------------------------
+            # ---- bookkeeping ---------------------------------------------
             MEM_HISTORY.append((q, answer))
 
-            # ---- output -------------------------------------------------
+            # ---- output ---------------------------------------------------
             print("\nANSWER:\n" + answer + "\n")
 
             if DEBUG_MODE:
@@ -60,6 +73,7 @@ def main() -> None:
 
         except Exception as e:
             print(f"[error] {e}")
+
 
 if __name__ == "__main__":
     main()
