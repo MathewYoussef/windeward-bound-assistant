@@ -16,10 +16,16 @@ MEM_HISTORY = deque(maxlen=6)           # (question, answer) pairs
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--health", action="store_true",
-                        help="Run a basic health check and exit")
-    parser.add_argument("--model", default=os.getenv("CHAT_MODEL_ID"),
-                        help="Chat model ID to use (overrides env)")
+    parser.add_argument(
+        "--health",
+        action="store_true",
+        help="Run a basic health check and exit",
+    )
+    parser.add_argument(
+        "--model",
+        default=os.getenv("CHAT_MODEL_ID"),
+        help="Chat model ID to use (overrides env)",
+    )
     args = parser.parse_args()
 
     if args.health:

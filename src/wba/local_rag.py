@@ -219,9 +219,9 @@ def _build_messages(question: str, context_sentences: List[str], history: List[D
     msgs.append(user)
     return msgs
 
-def _gen_chat(messages: List[Dict[str,str]], max_new_tokens=180) -> str:
+def _gen_chat(messages: List[Dict[str,str]], max_new_tokens=180, model_id=None) -> str:
     import torch
-    tok, llm = _ensure_chat()
+    tok, llm = _ensure_chat(model_id)
     max_ctx = _tok_max_ctx(tok, llm)
 
     def encode(msgs):
@@ -283,7 +283,8 @@ def load_pages(json_path: str) -> List[Dict[str, Any]]:
     return pages
 
 class LocalRAG:
-    def __init__(self, json_path="extracted_text.json"):
+    def __init__(self, json_path="extracted_text.json", model_id=None):
+        self.model_id = model_id
         self.pages = load_pages(json_path)
         self.texts = [p["content"] for p in self.pages]
         self.embeddings = (
@@ -350,7 +351,7 @@ class LocalRAG:
 
         history = history or []
         messages = _build_messages(question, fed_sents, history)
-        raw = _gen_chat(messages, max_new_tokens=180)
+        raw = _gen_chat(messages, max_new_tokens=180, model_id=self.model_id)
 
         # Enforce tone consistently, lightly
         level = os.getenv("PIRATE_LEVEL", "medium")
